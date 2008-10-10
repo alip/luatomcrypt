@@ -12,7 +12,10 @@ LDFLAGS+= -ltomcrypt
 tc.so: tomcrypt.c tomcrypt_hash.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tomcrypt.c
 
+test:
+	lunit test/*.lua
+
 clean:
 	rm -f *.o *.so || true
 
-.phony: clean
+.PHONY: clean test
