@@ -216,6 +216,30 @@ static int tc_hash_file(lua_State *L) {
     return 2;
 }
 
+static int tc_hash_filehandle(lua_State *L) {
+    int err, idx;
+    FILE **infp;
+    unsigned char out[MAXBLOCKSIZE] = { 0 };
+    unsigned long outlen = MAXBLOCKSIZE;
+
+    /* Get function arguments */
+    idx = luaL_checkint(L, 1);
+    infp = (FILE **) luaL_checkudata(L, 2, LUA_FILEHANDLE);
+    luaL_argcheck(L, infp != NULL, 2, "`file' expected");
+
+    err = hash_filehandle(idx, *infp, out, &outlen);
+    if (err != CRYPT_OK) {
+        /* Push nil and error message */
+        lua_pushnil(L);
+        lua_pushstring(L, error_to_string(err));
+        return 2;
+    }
+
+    lua_pushstring(L, (char *) out);
+    lua_pushinteger(L, outlen);
+    return 2;
+}
+
 /* HASHNAME_init() functions
  * take no argument and return HashState userdata.
  * HASHNAME_process() functions

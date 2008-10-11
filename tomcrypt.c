@@ -25,6 +25,7 @@
 #include <tomcrypt.h>
 
 #include <lua.h>
+#include <lualib.h>
 #include <lauxlib.h>
 
 #define MODULE_NAME "tc"
@@ -42,6 +43,7 @@ static const luaL_reg R[] = {
     {"id_done",             tc_id_done},
     {"hash_string",         tc_hash_string},
     {"hash_file",           tc_hash_file},
+    {"hash_filehandle",     tc_hash_filehandle},
 
 #ifdef LTC_WHIRLPOOL
     {"whirlpool_init",      tc_whirlpool_init},

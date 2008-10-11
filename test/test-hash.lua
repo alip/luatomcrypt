@@ -64,6 +64,22 @@ function test_hash_file()
     assert(b == 16, "(hash_file) blocksizes don't match")
 end
 
+function test_hash_file()
+    infile = "test/test-hashfile.txt"
+    EXPECTED = "50e6d148c24de59a05b277511097c74e29ec1815"
+
+    infp = io.open(infile, "r")
+
+    assert(tc.register_hash(tc.sha1_desc), "tc.register_hash() failed")
+    idx = assert(tc.find_hash("sha1"), "tc.find_hash() failed")
+    h, b = tc.hash_filehandle(idx, infp)
+    assert(h, "tc.hash_filehandle() failed")
+
+    assert(hexdigest(h) == EXPECTED, "(hash_filehandle) sha1 digests don't match")
+    assert(b == 20, "(hash_filehandle) blocksizes don't match")
+    infp:close()
+end
+
 function test_whirlpool()
     instring = "Stairway scare, Dan Dare, who's there?"
     EXPECTED = "45f4614ca355239ffe45919b86a4e717590e181" ..
