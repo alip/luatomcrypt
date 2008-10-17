@@ -22,20 +22,15 @@
  * THE SOFTWARE.
 */
 
-/* LtcHashDescriptor user data */
-typedef struct LtcHashDescriptor {
-    const struct ltc_hash_descriptor *hash;
-} LtcHashDescriptor;
-
 /* register_hash(ltc_hash_descriptor) */
 static int tc_register_hash(lua_State *L) {
-    LtcHashDescriptor *tc_hash;
+    struct ltc_hash_descriptor **hash;
 
     /* Get function arguments */
-    tc_hash = (LtcHashDescriptor *) luaL_checkudata(L, 1, "TomCrypt.LtcHashDescriptor");
-    luaL_argcheck(L, tc_hash != NULL, 1, "`ltc_hash_descriptor' expected");
+    hash = (struct ltc_hash_descriptor **) luaL_checkudata(L, 1, "TomCrypt.LtcHashDescriptor");
+    luaL_argcheck(L, hash != NULL, 1, "`ltc_hash_descriptor' expected");
 
-    if (register_hash(tc_hash->hash) == -1) {
+    if (register_hash(*hash) == -1) {
         /* Push nil and error message */
         lua_pushnil(L);
         lua_pushstring(L, "register failed");
@@ -48,13 +43,13 @@ static int tc_register_hash(lua_State *L) {
 
 /* register_hash(ltc_hash_descriptor) */
 static int tc_unregister_hash(lua_State *L) {
-    LtcHashDescriptor *tc_hash;
+    struct ltc_hash_descriptor **hash;
 
     /* Get function arguments */
-    tc_hash = (LtcHashDescriptor *) luaL_checkudata(L, 1, "TomCrypt.LtcHashDescriptor");
-    luaL_argcheck(L, tc_hash != NULL, 1, "`ltc_hash_descriptor' expected");
+    hash = (struct ltc_hash_descriptor **) luaL_checkudata(L, 1, "TomCrypt.LtcHashDescriptor");
+    luaL_argcheck(L, hash != NULL, 1, "`ltc_hash_descriptor' expected");
 
-    if (unregister_hash(tc_hash->hash) == -1) {
+    if (unregister_hash(*hash) == -1) {
         /* Push nil and error message */
         lua_pushnil(L);
         lua_pushstring(L, "unregister failed");

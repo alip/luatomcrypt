@@ -157,15 +157,15 @@ LUALIB_API int luaopen_tc(lua_State *L) {
     lua_settable(L, -3);
 
     /* Make hash descriptors module variables. */
-    LtcHashDescriptor *tc_hash;
+    const struct ltc_hash_descriptor **hash;
 #ifdef LTC_WHIRLPOOL
     lua_pushliteral(L, "whirlpool_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &whirlpool_desc;
+    *hash = &whirlpool_desc;
 
     lua_settable(L, -3);
 #endif
@@ -173,11 +173,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_SHA512
     lua_pushliteral(L, "sha512_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &sha512_desc;
+    *hash = &sha512_desc;
 
     lua_settable(L, -3);
 #endif
@@ -185,11 +185,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_SHA384
     lua_pushliteral(L, "sha384_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &sha384_desc;
+    *hash = &sha384_desc;
 
     lua_settable(L, -3);
 #endif
@@ -197,11 +197,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_SHA256
     lua_pushliteral(L, "sha256_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &sha256_desc;
+    *hash = &sha256_desc;
 
     lua_settable(L, -3);
 #endif
@@ -209,11 +209,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_SHA224
     lua_pushliteral(L, "sha224_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &sha224_desc;
+    *hash = &sha224_desc;
 
     lua_settable(L, -3);
 #endif
@@ -221,11 +221,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_SHA1
     lua_pushliteral(L, "sha1_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &sha1_desc;
+    *hash = &sha1_desc;
 
     lua_settable(L, -3);
 #endif
@@ -233,11 +233,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_MD5
     lua_pushliteral(L, "md5_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &md5_desc;
+    *hash = &md5_desc;
 
     lua_settable(L, -3);
 #endif
@@ -245,11 +245,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_MD4
     lua_pushliteral(L, "md4_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &md4_desc;
+    *hash = &md4_desc;
 
     lua_settable(L, -3);
 #endif
@@ -257,11 +257,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_MD2
     lua_pushliteral(L, "md2_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &md2_desc;
+    *hash = &md2_desc;
 
     lua_settable(L, -3);
 #endif
@@ -269,11 +269,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_TIGER
     lua_pushliteral(L, "tiger_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &tiger_desc;
+    *hash = &tiger_desc;
 
     lua_settable(L, -3);
 #endif
@@ -281,11 +281,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_RIPEMD128
     lua_pushliteral(L, "rmd128_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &rmd128_desc;
+    *hash = &rmd128_desc;
 
     lua_settable(L, -3);
 #endif
@@ -293,11 +293,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_RIPEMD160
     lua_pushliteral(L, "rmd160_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &rmd160_desc;
+    *hash = &rmd160_desc;
 
     lua_settable(L, -3);
 #endif
@@ -305,11 +305,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_RIPEMD256
     lua_pushliteral(L, "rmd256_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &rmd256_desc;
+    *hash = &rmd256_desc;
 
     lua_settable(L, -3);
 #endif
@@ -317,11 +317,11 @@ LUALIB_API int luaopen_tc(lua_State *L) {
 #ifdef LTC_RIPEMD320
     lua_pushliteral(L, "rmd320_desc");
 
-    tc_hash = (LtcHashDescriptor *) lua_newuserdata(L, sizeof(LtcHashDescriptor));
+    hash = (const struct ltc_hash_descriptor **) lua_newuserdata(L, sizeof(struct ltc_hash_descriptor *));
     luaL_getmetatable(L, "TomCrypt.LtcHashDescriptor");
     lua_setmetatable(L, -2);
 
-    tc_hash->hash = &rmd320_desc;
+    *hash = &rmd320_desc;
 
     lua_settable(L, -3);
 #endif
