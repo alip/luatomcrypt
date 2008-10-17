@@ -22,11 +22,6 @@
  * THE SOFTWARE.
 */
 
-/* HashState userdata */
-typedef struct HashState {
-    hash_state md;
-} HashState;
-
 /* LtcHashDescriptor user data */
 typedef struct LtcHashDescriptor {
     const struct ltc_hash_descriptor *hash;
@@ -73,20 +68,17 @@ static int tc_unregister_hash(lua_State *L) {
 /* Takes hash id as argument and returns HashState userdata */
 static int tc_id_init(lua_State *L) {
     int idx;
-    hash_state md;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
     idx = luaL_checkint(L, 1);
 
-    hash_descriptor[idx].init(&md);
-
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    hash_descriptor[idx].init(md);
     return 1;
 }
 
@@ -96,18 +88,18 @@ static int tc_id_init(lua_State *L) {
 static int tc_id_process(lua_State *L) {
     const char *instring;
     int err, idx;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
     idx = luaL_checkint(L, 1);
 
-    tc_md = (HashState *) luaL_checkudata(L, 2, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 2, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 2, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 2, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 3);
 
     /* Call the library function */
-    err = hash_descriptor[idx].process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = hash_descriptor[idx].process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -125,16 +117,16 @@ static int tc_id_process(lua_State *L) {
 static int tc_id_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err, idx;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
     idx = luaL_checkint(L, 1);
 
-    tc_md = (HashState *) luaL_checkudata(L, 2, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 2, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 2, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 2, "`hashstate' expected");
 
     /* Call the library function */
-    err = hash_descriptor[idx].done(&(tc_md->md), out);
+    err = hash_descriptor[idx].done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -254,33 +246,30 @@ static int tc_hash_filehandle(lua_State *L) {
 
 #ifdef LTC_WHIRLPOOL
 static int tc_whirlpool_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    whirlpool_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    whirlpool_init(md);
     return 1;
 }
 
 static int tc_whirlpool_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = whirlpool_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = whirlpool_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -295,14 +284,14 @@ static int tc_whirlpool_process(lua_State *L) {
 static int tc_whirlpool_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = whirlpool_done(&(tc_md->md), out);
+    err = whirlpool_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -332,33 +321,30 @@ static int tc_whirlpool_test(lua_State *L) {
 
 #ifdef LTC_SHA512
 static int tc_sha512_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    sha512_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    sha512_init(md);
     return 1;
 }
 
 static int tc_sha512_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = sha512_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = sha512_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -373,14 +359,14 @@ static int tc_sha512_process(lua_State *L) {
 static int tc_sha512_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = sha512_done(&(tc_md->md), out);
+    err = sha512_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -410,33 +396,30 @@ static int tc_sha512_test(lua_State *L) {
 
 #ifdef LTC_SHA384
 static int tc_sha384_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    sha384_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    sha384_init(md);
     return 1;
 }
 
 static int tc_sha384_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = sha384_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = sha384_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -451,14 +434,14 @@ static int tc_sha384_process(lua_State *L) {
 static int tc_sha384_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = sha384_done(&(tc_md->md), out);
+    err = sha384_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -488,33 +471,30 @@ static int tc_sha384_test(lua_State *L) {
 
 #ifdef LTC_SHA256
 static int tc_sha256_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    sha256_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    sha256_init(md);
     return 1;
 }
 
 static int tc_sha256_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = sha256_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = sha256_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -529,14 +509,14 @@ static int tc_sha256_process(lua_State *L) {
 static int tc_sha256_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = sha256_done(&(tc_md->md), out);
+    err = sha256_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -566,33 +546,30 @@ static int tc_sha256_test(lua_State *L) {
 
 #ifdef LTC_SHA224
 static int tc_sha224_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    sha224_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    sha224_init(md);
     return 1;
 }
 
 static int tc_sha224_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = sha224_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = sha224_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -607,14 +584,14 @@ static int tc_sha224_process(lua_State *L) {
 static int tc_sha224_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = sha224_done(&(tc_md->md), out);
+    err = sha224_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -644,33 +621,30 @@ static int tc_sha224_test(lua_State *L) {
 
 #ifdef LTC_SHA1
 static int tc_sha1_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    sha1_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    sha1_init(md);
     return 1;
 }
 
 static int tc_sha1_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = sha1_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = sha1_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -685,14 +659,14 @@ static int tc_sha1_process(lua_State *L) {
 static int tc_sha1_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = sha1_done(&(tc_md->md), out);
+    err = sha1_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -722,33 +696,30 @@ static int tc_sha1_test(lua_State *L) {
 
 #ifdef LTC_MD5
 static int tc_md5_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    md5_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    md5_init(md);
     return 1;
 }
 
 static int tc_md5_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = md5_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = md5_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -763,14 +734,14 @@ static int tc_md5_process(lua_State *L) {
 static int tc_md5_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = md5_done(&(tc_md->md), out);
+    err = md5_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -800,33 +771,30 @@ static int tc_md5_test(lua_State *L) {
 
 #ifdef LTC_MD4
 static int tc_md4_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    md4_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    md4_init(md);
     return 1;
 }
 
 static int tc_md4_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = md4_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = md4_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -841,14 +809,14 @@ static int tc_md4_process(lua_State *L) {
 static int tc_md4_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = md4_done(&(tc_md->md), out);
+    err = md4_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -878,33 +846,30 @@ static int tc_md4_test(lua_State *L) {
 
 #ifdef LTC_MD2
 static int tc_md2_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    md2_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    md2_init(md);
     return 1;
 }
 
 static int tc_md2_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = md2_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = md2_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -919,14 +884,14 @@ static int tc_md2_process(lua_State *L) {
 static int tc_md2_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = md2_done(&(tc_md->md), out);
+    err = md2_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -956,33 +921,30 @@ static int tc_md2_test(lua_State *L) {
 
 #ifdef LTC_TIGER
 static int tc_tiger_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    tiger_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    tiger_init(md);
     return 1;
 }
 
 static int tc_tiger_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = tiger_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = tiger_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -997,14 +959,14 @@ static int tc_tiger_process(lua_State *L) {
 static int tc_tiger_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = tiger_done(&(tc_md->md), out);
+    err = tiger_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1034,33 +996,30 @@ static int tc_tiger_test(lua_State *L) {
 
 #ifdef LTC_RIPEMD128
 static int tc_rmd128_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    rmd128_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    rmd128_init(md);
     return 1;
 }
 
 static int tc_rmd128_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = rmd128_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = rmd128_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1075,14 +1034,14 @@ static int tc_rmd128_process(lua_State *L) {
 static int tc_rmd128_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = rmd128_done(&(tc_md->md), out);
+    err = rmd128_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1112,33 +1071,30 @@ static int tc_rmd128_test(lua_State *L) {
 
 #ifdef LTC_RIPEMD160
 static int tc_rmd160_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    rmd160_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    rmd160_init(md);
     return 1;
 }
 
 static int tc_rmd160_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = rmd160_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = rmd160_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1153,14 +1109,14 @@ static int tc_rmd160_process(lua_State *L) {
 static int tc_rmd160_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = rmd160_done(&(tc_md->md), out);
+    err = rmd160_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1190,33 +1146,30 @@ static int tc_rmd160_test(lua_State *L) {
 
 #ifdef LTC_RIPEMD256
 static int tc_rmd256_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
-
-    rmd256_init(&md);
+    hash_state *md;
 
     /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    rmd256_init(md);
     return 1;
 }
 
 static int tc_rmd256_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = rmd256_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = rmd256_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1231,14 +1184,14 @@ static int tc_rmd256_process(lua_State *L) {
 static int tc_rmd256_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = rmd256_done(&(tc_md->md), out);
+    err = rmd256_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1268,33 +1221,30 @@ static int tc_rmd256_test(lua_State *L) {
 
 #ifdef LTC_RIPEMD320
 static int tc_rmd320_init(lua_State *L) {
-    hash_state md;
-    HashState *tc_md;
+    hash_state *md;
 
-    rmd320_init(&md);
-
-    /* Create userdata and set metatable for HashState */
-    tc_md = (HashState *) lua_newuserdata(L, sizeof(HashState));
+    /* Create userdata and set metatable for hash_state */
+    md = (hash_state *) lua_newuserdata(L, sizeof(hash_state));
     luaL_getmetatable(L, "TomCrypt.HashState");
     lua_setmetatable(L, -2);
 
-    tc_md->md = md;
+    rmd320_init(md);
     return 1;
 }
 
 static int tc_rmd320_process(lua_State *L) {
     const char *instring;
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     instring = luaL_checkstring(L, 2);
 
     /* Call the library function */
-    err = rmd320_process(&(tc_md->md), (unsigned char *) instring, strlen(instring));
+    err = rmd320_process(md, (unsigned char *) instring, strlen(instring));
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
@@ -1309,14 +1259,14 @@ static int tc_rmd320_process(lua_State *L) {
 static int tc_rmd320_done(lua_State *L) {
     unsigned char out[MAXBLOCKSIZE] = { 0 };
     int err;
-    HashState *tc_md;
+    hash_state *md;
 
     /* Get function arguments */
-    tc_md = (HashState *) luaL_checkudata(L, 1, "TomCrypt.HashState");
-    luaL_argcheck(L, tc_md != NULL, 1, "`hashstate' expected");
+    md = (hash_state *) luaL_checkudata(L, 1, "TomCrypt.HashState");
+    luaL_argcheck(L, md != NULL, 1, "`hashstate' expected");
 
     /* Call the library function */
-    err = rmd320_done(&(tc_md->md), out);
+    err = rmd320_done(md, out);
     if (err != CRYPT_OK) {
         /* Push nil and error message */
         lua_pushnil(L);
